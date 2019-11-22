@@ -1,40 +1,72 @@
-import { Component, OnInit } from '@angular/core';
-import { DomSanitizer } from '@angular/platform-browser';
+import {
+  Component,
+  OnInit,
+  ViewContainerRef,
+  ComponentFactoryResolver,
+  ViewChild
+} from "@angular/core";
+import { DomSanitizer } from "@angular/platform-browser";
+import { AComponent } from "./a/a.component";
 
 @Component({
-  selector: 'my-app',
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.css']
+  selector: "my-app",
+  templateUrl: "./app.component.html",
+  styleUrls: ["./app.component.css"]
 })
 export class AppComponent implements OnInit {
   fileUrl;
   apiResponse;
   data;
   fileURLS: any[] = [];
-  constructor(private sanitizer: DomSanitizer) {  }
+  @ViewChild("getJSON", { read: ViewContainerRef }) getJSON: ViewContainerRef;
+  constructor(
+    private sanitizer: DomSanitizer,
+    private component: ComponentFactoryResolver
+  ) {}
   ngOnInit() {
     //will be replaced by HTTP Response
-    this.apiResponse = [{
-      "name": "ramesh",
-      "id": "12"
-    }, {
-      "name": "ramesh",
-      "id": "12"
-    },{
-      "name": "ramesh",
-      "id": "12"
-    },{
-      "name": "ramesh",
-      "id": "12"
-    }, {
-      "name": "ramesh",
-      "id": "12"
-    }];
-    this.data = JSON.stringify(this.apiResponse);
-    this.apiResponse.forEach(e => {
-      this.fileURLS.push(this.sanitizer.bypassSecurityTrustResourceUrl(window.URL.createObjectURL(new Blob([e], { type: 'application/json' }))))
-    })
-    console.log(this.fileURLS)
+    this.apiResponse = [
+      {
+        lan: "en",
+        moduleName: "logFrame",
+        name: "ramesh",
+        id: "11"
+      },
+      {
+        lan: "fr",
+        moduleName: "logFrame",
+        name: "ramesh",
+        id: "12"
+      },
+      {
+        lan: "th",
+        moduleName: "logFrame",
+        name: "ramesh",
+        id: "13"
+      },
+      {
+        lan: "sp",
+        moduleName: "logFrame",
+        name: "ramesh",
+        id: "14"
+      }
+    ];
   }
 
+  download() {
+    this.apiResponse.forEach((e, index) => {
+      let data = JSON.stringify(e);
+      let factory = this.component.resolveComponentFactory(AComponent);
+      let componentRef = this.getJSON.createComponent(factory);
+      componentRef.instance.link = this.sanitizer.bypassSecurityTrustResourceUrl(
+        window.URL.createObjectURL(
+          new Blob([data], { type: "application/json" })
+        )
+      );
+      componentRef.instance.name = `file_${e.moduleName}.${e.lan}.json`;
+      setTimeout(() => {
+        componentRef.instance.click();
+      }, 200);
+    });
+  }
 }
